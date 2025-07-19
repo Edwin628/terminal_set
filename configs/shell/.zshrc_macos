@@ -1,0 +1,74 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Path to your oh-my-zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+
+# Set name of the theme to load
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# Which plugins would you like to load?
+plugins=(git)
+
+source $ZSH/oh-my-zsh.sh
+
+# macOS specific PATH
+export PATH="/opt/homebrew/bin:/usr/local/Homebrew/bin:/usr/local/bin:$PATH"
+
+# Homebrew shell environment
+if command -v /opt/homebrew/bin/brew >/dev/null 2>&1; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif command -v /usr/local/Homebrew/bin/brew >/dev/null 2>&1; then
+    eval "$(/usr/local/Homebrew/bin/brew shellenv)"
+fi
+
+# Python path
+if command -v brew >/dev/null 2>&1; then
+    export PATH="$PATH:$(brew --prefix)/opt/python/libexec/bin"
+fi
+
+# MySQL path
+export PATH="/usr/local/mysql/bin:$PATH"
+
+# Node.js and NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+
+# Go configuration
+if command -v go >/dev/null 2>&1; then
+    export GOPATH="$HOME/go"
+    export PATH="$PATH:$GOPATH/bin"
+fi
+
+# Python and Conda
+if [[ -f "$HOME/anaconda3/etc/profile.d/conda.sh" ]]; then
+    source "$HOME/anaconda3/etc/profile.d/conda.sh"
+elif [[ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+fi
+
+# Load zsh plugins
+source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fpath=(~/.oh-my-zsh/custom/plugins/zsh-completions $fpath)
+
+# FZF
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Powerlevel10k configuration
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Editor
+export EDITOR='vim'
+
+# History
+export HISTSIZE=10000
+export SAVEHIST=10000
+export HISTFILE=~/.zsh_history
+
+# Reload completions
+autoload -U compinit
+compinit 
