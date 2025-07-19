@@ -1,295 +1,187 @@
-# 终端工具配置集合
+# 🚀 Terminal Tools Configuration
 
-## 📋 目录
-- [简介](#简介)
-- [工具列表](#工具列表)
-- [快速开始](#快速开始)
-- [详细文档](#详细文档)
-- [迁移指南](#迁移指南)
-- [常见问题](#常见问题)
+一个跨平台的终端工具配置集合，支持 macOS、Linux 和 Windows。
 
-## 🎯 简介
+## 📋 功能特性
 
-这是一个完整的终端工具配置集合，包含：
-- **Zsh 配置**：增强的 shell 体验
-- **Neovim 配置**：现代化的编辑器
-- **Tmux 配置**：终端复用器
-- **Vim 配置**：传统编辑器
-- **Bash 配置**：备用 shell 配置
+- **跨平台支持**: 自动检测操作系统并适配配置
+- **一键安装**: 提供通用安装脚本
+- **模块化设计**: 按功能分类的配置文件
+- **完整文档**: 详细的使用和部署指南
 
-所有配置都经过优化，提供一致且高效的开发体验。
+## 🛠️ 包含的工具
 
-## 🛠️ 工具列表
+### Shell 环境
+- **Zsh** + **Oh My Zsh**: 强大的 shell 环境
+- **Powerlevel10k**: 美观的终端主题
+- **Zsh 插件**: 自动补全、语法高亮、命令建议
 
-### 🔧 Shell 配置
-| 工具 | 配置文件 | 状态 | 说明 |
-|------|----------|------|------|
-| **Zsh** | `~/.zshrc` | ✅ 已配置 | 主要 shell，集成 Oh My Zsh + Powerlevel10k |
-| **Bash** | `~/.bashrc` | ✅ 已配置 | 备用 shell，基础增强功能 |
-| **Zsh 迁移包** | `zsh_migration_backup/` | ✅ 已准备 | Linux 迁移专用配置 |
+### 终端工具
+- **Tmux**: 终端复用器
+- **FZF**: 模糊查找工具
+- **Ripgrep**: 快速文本搜索
 
-### 📝 编辑器配置
-| 工具 | 配置文件 | 状态 | 说明 |
-|------|----------|------|------|
-| **Neovim** | `~/.config/nvim/` | ✅ 已配置 | 现代化编辑器，LSP + 插件 |
-| **Vim** | `~/.vimrc` | ✅ 已配置 | 传统编辑器，vim-plug 插件 |
-
-### 🖥️ 终端工具
-| 工具 | 配置文件 | 状态 | 说明 |
-|------|----------|------|------|
-| **Tmux** | `~/.tmux.conf` | ✅ 已配置 | 终端复用器，TPM 插件 |
+### 编辑器
+- **Vim**: 经典文本编辑器
+- **Neovim**: 现代化的 Vim 替代品
 
 ## 🚀 快速开始
 
-### 1. 检查当前状态
-```bash
-# 检查所有工具是否已安装
-which zsh bash nvim vim tmux
+### 方法一：一键安装（推荐）
 
-# 检查配置文件是否存在
-ls -la ~/.zshrc ~/.bashrc ~/.vimrc ~/.tmux.conf
-ls -la ~/.config/nvim/
+```bash
+# 克隆项目
+git clone <your-repo-url>
+cd terminal_set
+
+# 运行通用安装脚本
+./scripts/install/install_universal.sh
 ```
 
-### 2. 启动工具
-```bash
-# 启动 Zsh（默认 shell）
-zsh
+### 方法二：手动安装
 
-# 启动 Neovim
-nvim
+1. **安装 Oh My Zsh**
+   ```bash
+   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+   ```
 
-# 启动 Vim
-vim
+2. **安装配置文件**
+   ```bash
+   cp configs/shell/.zshrc_universal ~/.zshrc
+   cp configs/terminal/.tmux.conf ~/.tmux.conf
+   cp configs/editor/.vimrc ~/.vimrc
+   ```
 
-# 启动 Tmux
-tmux
+3. **重启终端**
+   ```bash
+   source ~/.zshrc
+   ```
 
-# 启动 Bash
-bash
+## 📁 项目结构
+
+```
+terminal_set/
+├── configs/                 # 配置文件
+│   ├── shell/              # Shell 配置
+│   ├── terminal/           # 终端工具配置
+│   └── editor/             # 编辑器配置
+├── docs/                   # 文档
+│   ├── shell/              # Shell 相关文档
+│   ├── terminal/           # 终端工具文档
+│   ├── editor/             # 编辑器文档
+│   ├── migration/          # 迁移指南
+│   └── DEPLOYMENT_GUIDE.md # 部署指南
+├── scripts/                # 脚本文件
+│   ├── install/            # 安装脚本
+│   └── check/              # 检查脚本
+└── README.md               # 项目说明
 ```
 
-### 3. 重新加载配置
-```bash
-# 重新加载 Zsh 配置
-source ~/.zshrc
+## 🌍 跨平台支持
 
-# 重新加载 Bash 配置
-source ~/.bashrc
+### 支持的操作系统
+- **macOS** (Intel & Apple Silicon)
+- **Linux** (Ubuntu, CentOS, Fedora, Arch Linux, openSUSE)
+- **Windows** (通过 WSL 或 Git Bash)
 
-# 重新加载 Tmux 配置
-tmux source-file ~/.tmux.conf
-```
+### 自动检测功能
+- 操作系统类型
+- 包管理器类型
+- 工具安装路径
+- 架构类型
 
-## 📚 详细文档
+## 📖 详细文档
 
-### Shell 配置
-- **[Zsh 配置说明](docs/shell/ZSH_README.md)** - Oh My Zsh + Powerlevel10k 详细指南
-- **[Bash 配置说明](docs/migration/zsh_migration_backup/BASH_README.md)** - Bash 增强功能说明
+- **[部署指南](docs/DEPLOYMENT_GUIDE.md)**: 跨平台部署详细说明
+- **[项目结构](docs/PROJECT_STRUCTURE.md)**: 项目目录结构说明
+- **[Shell 配置](docs/shell/ZSH_README.md)**: Zsh 配置和使用指南
+- **[Tmux 使用](docs/terminal/TMUX_README.md)**: Tmux 详细使用说明
+- **[Vim 配置](docs/editor/VIM_README.md)**: Vim 配置和插件指南
 
-### 编辑器配置
-- **[Neovim 配置说明](configs/editor/nvim/README.md)** - 完整 Neovim 配置指南
-- **[Vim 配置说明](docs/editor/VIM_README.md)** - Vim 插件和设置说明
+## 🔧 配置说明
 
-### 终端工具
-- **[Tmux 使用指南](docs/terminal/TMUX_README.md)** - 完整的 Tmux 使用说明
-- **[Tmux 快速参考](docs/terminal/TMUX_QUICK_REFERENCE.md)** - 常用命令速查
+### 通用配置特点
+- **自动路径检测**: 根据系统自动设置工具路径
+- **错误处理**: 优雅处理缺失的工具和插件
+- **向后兼容**: 支持不同版本的工具
+- **性能优化**: 快速启动和响应
 
-### 迁移和安装
-- **[Zsh 迁移指南](docs/migration/zsh_migration_backup/README.md)** - Linux 迁移说明
-- **[项目结构说明](docs/PROJECT_STRUCTURE.md)** - 文件组织说明
-- **[工具检查清单](scripts/check/TOOLS_CHECKLIST.md)** - 安装检查指南
+### 平台特定优化
+- **macOS**: Homebrew 集成，Apple Silicon 支持
+- **Linux**: 多发行版支持，包管理器自动检测
+- **Windows**: WSL 和 Git Bash 支持
 
-## 🔄 迁移指南
-
-### 从 macOS 迁移到 Linux
-
-#### 1. 使用自动安装脚本
-```bash
-# 下载迁移包
-# 运行安装脚本
-cd zsh_migration_backup
-./install_on_linux.sh
-```
-
-#### 2. 手动安装
-```bash
-# 安装 Zsh
-sudo apt install zsh
-
-# 安装 Oh My Zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
-# 复制配置文件
-cp .zshrc_terminal_only ~/.zshrc
-cp .p10k.zsh ~/.p10k.zsh
-
-# 安装插件
-git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-```
-
-### 从 Linux 迁移到 macOS
-
-#### 1. 使用 Homebrew 安装
-```bash
-# 安装工具
-brew install zsh nvim tmux
-
-# 复制配置文件
-cp ~/.zshrc ~/.zshrc.backup
-cp .zshrc ~/.zshrc
-```
-
-## 🎨 主题和外观
-
-### Powerlevel10k 主题
-- **自动配置**：运行 `p10k configure` 重新配置
-- **颜色方案**：支持浅色/深色主题
-- **图标支持**：需要安装 Nerd Fonts
-
-### Neovim 主题
-- **默认主题**：tokyonight
-- **状态栏**：lualine
-- **文件树**：nvim-tree
-
-### Tmux 状态栏
-- **位置**：底部
-- **颜色**：黑色背景，白色文字
-- **信息**：会话名、窗口号、时间
-
-## 🔧 自定义配置
-
-### 修改 Zsh 配置
-```bash
-# 编辑配置文件
-vim ~/.zshrc
-
-# 重新加载
-source ~/.zshrc
-```
-
-### 修改 Neovim 配置
-```bash
-# 编辑配置文件
-nvim ~/.config/nvim/init.lua
-
-# 重新加载（在 Neovim 中）
-:source %
-```
-
-### 修改 Tmux 配置
-```bash
-# 编辑配置文件
-vim ~/.tmux.conf
-
-# 重新加载
-tmux source-file ~/.tmux.conf
-```
-
-## 🚨 故障排除
+## 🐛 故障排除
 
 ### 常见问题
 
-#### 1. Zsh 插件不工作
-```bash
-# 检查插件是否正确安装
-ls ~/.oh-my-zsh/custom/plugins/
+1. **Powerlevel10k 警告**
+   ```bash
+   # 配置 Powerlevel10k
+   p10k configure
+   
+   # 或禁用 instant prompt
+   echo 'typeset -g POWERLEVEL9K_INSTANT_PROMPT=off' >> ~/.zshrc
+   ```
 
-# 重新安装插件
-git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+2. **插件加载失败**
+   ```bash
+   # 检查插件目录
+   ls -la ~/.oh-my-zsh/custom/plugins/
+   
+   # 重新安装插件
+   ./scripts/install/install_universal.sh
+   ```
+
+3. **权限问题**
+   ```bash
+   # 修复权限
+   chmod -R g-w ~/.oh-my-zsh
+   chmod +x scripts/install/install_universal.sh
+   ```
+
+## 🔄 更新和维护
+
+### 更新配置
+```bash
+# 更新所有工具
+./scripts/install/install_universal.sh
+
+# 更新 Oh My Zsh
+omz update
+
+# 更新插件
+cd ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions && git pull
+cd ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && git pull
 ```
 
-#### 2. Neovim 插件不加载
+### 检查安装状态
 ```bash
-# 检查插件管理器
-nvim --headless -c "Lazy! sync" -c "qa"
-
-# 手动安装插件
-nvim --headless -c "Lazy install" -c "qa"
-```
-
-#### 3. Tmux 插件不工作
-```bash
-# 安装 TPM
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-
-# 在 tmux 中安装插件
-Ctrl + a, I
-```
-
-### 重置配置
-```bash
-# 备份当前配置
-cp ~/.zshrc ~/.zshrc.backup
-cp ~/.vimrc ~/.vimrc.backup
-cp ~/.tmux.conf ~/.tmux.conf.backup
-
-# 恢复默认配置
-# 从本仓库重新复制配置文件
-```
-
-## 📦 安装脚本
-
-### 一键安装脚本
-```bash
-# 运行一键安装脚本（推荐）
-./scripts/install/install_all.sh
-```
-
-### 安装检查脚本
-```bash
-# 检查安装状态
+# 运行检查脚本
 ./scripts/check/check_installation.sh
 ```
 
-### Linux 迁移脚本
-```bash
-# 运行 Linux 迁移脚本
-cd docs/migration/zsh_migration_backup
-./install_on_linux.sh
-```
+## 🤝 贡献指南
 
-### Bash 配置安装脚本
-```bash
-# 运行 Bash 配置安装脚本
-cd docs/migration/zsh_migration_backup
-./install_bash_config.sh
-```
-
-## 🔗 相关资源
-
-### 官方文档
-- [Zsh 官方文档](https://zsh.sourceforge.io/Doc/)
-- [Oh My Zsh 文档](https://ohmyz.sh/)
-- [Powerlevel10k 文档](https://github.com/romkatv/powerlevel10k)
-- [Neovim 文档](https://neovim.io/doc/)
-- [Tmux 文档](https://github.com/tmux/tmux/wiki)
-
-### 插件资源
-- [Zsh 插件列表](https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins)
-- [Neovim 插件](https://github.com/rockerBOO/awesome-neovim)
-- [Tmux 插件](https://github.com/rothgar/awesome-tmux)
-
-## 📝 更新日志
-
-### v1.0.0 (2024-07-19)
-- ✅ 完整的 Zsh 配置（Oh My Zsh + Powerlevel10k）
-- ✅ 完整的 Neovim 配置（LSP + 插件）
-- ✅ 完整的 Tmux 配置（TPM 插件）
-- ✅ Vim 配置（vim-plug 插件）
-- ✅ Bash 配置（基础增强）
-- ✅ Linux 迁移包
-- ✅ 详细文档和说明
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request 来改进这个配置集合！
+1. Fork 项目
+2. 创建功能分支
+3. 提交更改
+4. 推送到分支
+5. 创建 Pull Request
 
 ## 📄 许可证
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 📞 支持
+
+如果你遇到问题或有建议：
+
+1. 查看 [故障排除](#故障排除) 部分
+2. 阅读相关文档
+3. 提交 Issue
+4. 联系维护者
 
 ---
 
-**提示**：所有配置文件都经过测试和优化，可以直接使用。如有问题，请查看相应的详细文档。
+**注意**: 本配置适用于大多数 Unix-like 系统。如果在特定环境中遇到问题，请参考相应的平台文档。
