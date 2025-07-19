@@ -7,6 +7,7 @@
 - **双平台支持**: 专门的 macOS 和 Linux 脚本
 - **一键安装**: 简单的安装脚本
 - **完整配置**: Zsh、Tmux、Vim 配置
+- **颜色定制**: 提供颜色修改工具
 
 ## 🛠️ 包含的工具
 
@@ -47,6 +48,29 @@ cd terminal_set
 ./scripts/install/install_linux.sh
 ```
 
+## 🎨 颜色定制
+
+### 快速颜色修改
+```bash
+# 简单易用的颜色修改工具
+./scripts/customize/quick_colors.sh
+```
+
+### 高级颜色配置
+```bash
+# 完整的颜色配置工具
+./scripts/customize/change_colors.sh
+```
+
+### 手动修改
+```bash
+# 重新配置 Powerlevel10k
+p10k configure
+
+# 或直接编辑配置文件
+vim ~/.p10k.zsh
+```
+
 ## 📁 项目结构
 
 ```
@@ -58,9 +82,12 @@ terminal_set/
 │   ├── terminal/           # 终端工具配置
 │   └── editor/             # 编辑器配置
 ├── scripts/                # 脚本文件
-│   └── install/            # 安装脚本
-│       ├── install_macos.sh # macOS 安装脚本
-│       └── install_linux.sh # Linux 安装脚本
+│   ├── install/            # 安装脚本
+│   │   ├── install_macos.sh # macOS 安装脚本
+│   │   └── install_linux.sh # Linux 安装脚本
+│   └── customize/          # 定制脚本
+│       ├── quick_colors.sh  # 快速颜色修改
+│       └── change_colors.sh # 完整颜色配置
 └── README.md               # 项目说明
 ```
 
@@ -117,6 +144,12 @@ terminal_set/
    source ~/.zshrc
    ```
 
+4. **颜色不满意**
+   ```bash
+   # 使用颜色修改工具
+   ./scripts/customize/quick_colors.sh
+   ```
+
 ## 🔄 更新
 
 ### 更新工具
@@ -156,6 +189,15 @@ p10k configure
 ### 使用 Tmux
 ```bash
 tmux
+```
+
+### 自定义颜色
+```bash
+# 快速修改
+./scripts/customize/quick_colors.sh
+
+# 高级配置
+./scripts/customize/change_colors.sh
 ```
 
 ## 🤝 贡献
