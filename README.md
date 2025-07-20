@@ -5,16 +5,20 @@
 ## 📋 功能特性
 
 - **双平台支持**: 专门的 macOS 和 Linux 脚本
+- **双 Shell 支持**: Zsh 和 Bash 配置
 - **一键安装**: 简单的安装脚本
-- **完整配置**: Zsh、Tmux、Vim 配置
+- **完整配置**: Zsh、Bash、Tmux、Vim 配置
 - **颜色定制**: 提供颜色修改工具
+- **插件生态**: 类似 Zsh 插件的 Bash 功能
 
 ## 🛠️ 包含的工具
 
 ### Shell 环境
 - **Zsh** + **Oh My Zsh**: 强大的 shell 环境
-- **Powerlevel10k**: 美观的终端主题
+- **Bash** + **增强配置**: 类似 Zsh 插件的功能
+- **Powerlevel10k**: 美观的终端主题 (Zsh)
 - **Zsh 插件**: 自动补全、语法高亮、命令建议
+- **Bash 插件**: 历史搜索、目录跳转、模糊搜索
 
 ### 终端工具
 - **Tmux**: 终端复用器
@@ -26,8 +30,9 @@
 
 ## 🚀 快速开始
 
-### macOS 用户
+### Zsh 用户 (推荐)
 
+#### macOS 用户
 ```bash
 # 克隆项目
 git clone <your-repo-url>
@@ -37,8 +42,7 @@ cd terminal_set
 ./scripts/install/install_macos.sh
 ```
 
-### Linux 用户
-
+#### Linux 用户
 ```bash
 # 克隆项目
 git clone <your-repo-url>
@@ -46,6 +50,23 @@ cd terminal_set
 
 # 运行 Linux 安装脚本
 ./scripts/install/install_linux.sh
+```
+
+### Bash 用户
+
+如果你更喜欢使用 Bash，我们也提供了类似 Zsh 插件的功能：
+
+```bash
+# 安装 Bash 增强功能
+./scripts/install/install_bash_plugins.sh
+```
+
+详细说明请查看 [Bash 插件使用指南](docs/shell/BASH_PLUGINS_GUIDE.md)
+
+### 测试功能
+```bash
+# 测试 Bash 功能是否正常工作
+./scripts/test/test_bash_features.sh
 ```
 
 ## 🎨 颜色定制
@@ -78,16 +99,24 @@ terminal_set/
 ├── configs/                 # 配置文件
 │   ├── shell/              # Shell 配置
 │   │   ├── .zshrc_macos    # macOS 专用配置
-│   │   └── .zshrc_linux    # Linux 专用配置
+│   │   ├── .zshrc_linux    # Linux 专用配置
+│   │   └── .bashrc_enhanced # Bash 增强配置
 │   ├── terminal/           # 终端工具配置
 │   └── editor/             # 编辑器配置
 ├── scripts/                # 脚本文件
 │   ├── install/            # 安装脚本
 │   │   ├── install_macos.sh # macOS 安装脚本
-│   │   └── install_linux.sh # Linux 安装脚本
+│   │   ├── install_linux.sh # Linux 安装脚本
+│   │   └── install_bash_plugins.sh # Bash 插件安装
 │   └── customize/          # 定制脚本
 │       ├── quick_colors.sh  # 快速颜色修改
-│       └── change_colors.sh # 完整颜色配置
+│       ├── change_colors.sh # 完整颜色配置
+│       └── apply_current_theme.sh # 应用当前主题
+├── docs/                   # 文档
+│   └── shell/             # Shell 相关文档
+│       └── BASH_PLUGINS_GUIDE.md # Bash 插件指南
+│   ├── test/              # 测试脚本
+│   │   └── test_bash_features.sh # Bash 功能测试
 └── README.md               # 项目说明
 ```
 
@@ -111,14 +140,22 @@ terminal_set/
 - tmux, vim
 
 ### Shell 环境
-- Oh My Zsh
-- Powerlevel10k 主题
-- zsh-autosuggestions
-- zsh-syntax-highlighting
-- zsh-completions
+- **Zsh 环境**:
+  - Oh My Zsh
+  - Powerlevel10k 主题
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
+  - zsh-completions
+- **Bash 环境**:
+  - bash-completion
+  - bash-preexec
+  - fzf 模糊搜索
+  - 目录跳转功能
+  - 历史搜索功能
 
 ### 配置文件
 - .zshrc (平台专用)
+- .bashrc_enhanced (Bash 增强配置)
 - .tmux.conf
 - .vimrc
 
@@ -148,6 +185,15 @@ terminal_set/
    ```bash
    # 使用颜色修改工具
    ./scripts/customize/quick_colors.sh
+   ```
+
+5. **Bash 功能不工作**
+   ```bash
+   # 重新加载 Bash 配置
+   source ~/.bashrc
+   
+   # 检查 bash-completion 是否安装
+   which bash-completion
    ```
 
 ## 🔄 更新

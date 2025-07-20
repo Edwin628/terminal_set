@@ -1,0 +1,430 @@
+# Enhanced Bash Configuration
+# 增强的 Bash 配置文件，提供类似 Zsh 插件的功能
+
+# =============================================================================
+# 基础配置
+# =============================================================================
+
+# 历史记录配置
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoreboth:erasedups
+export HISTIGNORE="ls:ll:cd:pwd:clear:history:exit"
+
+# 启用历史记录搜索
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+
+# 启用自动补全
+if [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+elif [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+fi
+
+# =============================================================================
+# 类似 zsh-autosuggestions 的功能
+# =============================================================================
+
+# 使用 fzf 实现命令建议
+if command -v fzf >/dev/null 2>&1; then
+    # 历史命令搜索
+    bind '"\C-r": "\C-x1\e^\er"'
+    bind -x '"\C-x1": __fzf_history';
+    
+    __fzf_history() {
+        __ehc $(history | fzf --tac --tiebreak=index | perl -ne 'm/^\s*([0-9]+)/ and print "!$1"')
+    }
+    
+    # 目录搜索
+    bind '"\C-t": "\C-x2\e^\er"'
+    bind -x '"\C-x2": __fzf_cd';
+    
+    __fzf_cd() {
+        local dir
+        dir=$(find ${1:-.} -path '*/\.*' -prune -o -type d -print 2> /dev/null | fzf +m) &&
+        cd "$dir"
+    }
+    
+    # 文件搜索
+    bind '"\C-f": "\C-x3\e^\er"'
+    bind -x '"\C-x3": __fzf_file';
+    
+    __fzf_file() {
+        local file
+        file=$(find ${1:-.} -path '*/\.*' -prune -o -type f -print 2> /dev/null | fzf +m) &&
+        ${EDITOR:-vim} "$file"
+    }
+fi
+
+# =============================================================================
+# 类似 zsh-syntax-highlighting 的功能
+# =============================================================================
+
+# 使用 bash-preexec 实现命令高亮
+if [ -f ~/.bash-preexec.sh ]; then
+    source ~/.bash-preexec.sh
+    
+    # 命令执行前高亮
+    preexec() {
+        echo -e "\033[1;33m$1\033[0m"
+    }
+fi
+
+# 简单的语法检查
+check_syntax() {
+    if [[ $1 == *"&&"* ]] || [[ $1 == *"||"* ]] || [[ $1 == *"|"* ]]; then
+        echo -e "\033[1;36m复合命令: $1\033[0m"
+    fi
+}
+
+# =============================================================================
+# 类似 zsh-completions 的功能
+# =============================================================================
+
+# 增强的自动补全
+complete -W "$(echo `cat ~/.bash_history 2>/dev/null | tr ' ' '\n' | sort | uniq -c | sort -rn | head -20 | awk '{print $2}'`)" -o default
+
+# Git 自动补全
+if [ -f /usr/share/bash-completion/completions/git ]; then
+    . /usr/share/bash-completion/completions/git
+elif [ -f /etc/bash_completion.d/git ]; then
+    . /etc/bash_completion.d/git
+fi
+
+# Docker 自动补全
+if command -v docker >/dev/null 2>&1; then
+    if [ -f /usr/share/bash-completion/completions/docker ]; then
+        . /usr/share/bash-completion/completions/docker
+    fi
+fi
+
+# =============================================================================
+# 类似 zsh-autojump 的功能
+# =============================================================================
+
+# 简单的目录跳转
+j() {
+    if [ -z "$1" ]; then
+        cd ~
+    elif [ -d "$1" ]; then
+        cd "$1"
+    else
+        # 搜索历史目录
+        local dir
+        dir=$(find ~ -type d -name "*$1*" 2>/dev/null | head -1)
+        if [ -n "$dir" ]; then
+            cd "$dir"
+        else
+            echo "目录未找到: $1"
+        fi
+    fi
+}
+
+# =============================================================================
+# 类似 zsh-history-substring-search 的功能
+# =============================================================================
+
+# 上下箭头搜索历史
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'
+
+# Ctrl+P/Ctrl+N 搜索历史
+bind '"\C-p": history-search-backward'
+bind '"\C-n": history-search-forward'
+
+# =============================================================================
+# 类似 zsh-dirhistory 的功能
+# =============================================================================
+
+# 目录历史
+export DIRHISTORY_SIZE=20
+declare -a dirhistory
+
+# 记录目录历史
+cd() {
+    builtin cd "$@"
+    local dir=$(pwd)
+    
+    # 添加到历史
+    dirhistory=("$dir" "${dirhistory[@]}")
+    
+    # 保持历史大小
+    if [ ${#dirhistory[@]} -gt $DIRHISTORY_SIZE ]; then
+        dirhistory=("${dirhistory[@]:0:$DIRHISTORY_SIZE}")
+    fi
+    
+    # 去重
+    local -a unique_dirs
+    for d in "${dirhistory[@]}"; do
+        if [[ ! " ${unique_dirs[@]} " =~ " ${d} " ]]; then
+            unique_dirs+=("$d")
+        fi
+    done
+    dirhistory=("${unique_dirs[@]}")
+}
+
+# 目录历史导航
+dh() {
+    if [ -z "$1" ]; then
+        echo "目录历史:"
+        for i in "${!dirhistory[@]}"; do
+            echo "$i: ${dirhistory[$i]}"
+        done
+    else
+        if [ "$1" -ge 0 ] && [ "$1" -lt ${#dirhistory[@]} ]; then
+            cd "${dirhistory[$1]}"
+        else
+            echo "无效的索引: $1"
+        fi
+    fi
+}
+
+# =============================================================================
+# 类似 zsh-extract 的功能
+# =============================================================================
+
+# 通用解压函数
+extract() {
+    if [ -f $1 ]; then
+        case $1 in
+            *.tar.bz2)   tar xjf $1     ;;
+            *.tar.gz)    tar xzf $1     ;;
+            *.bz2)       bunzip2 $1     ;;
+            *.rar)       unrar e $1     ;;
+            *.gz)        gunzip $1      ;;
+            *.tar)       tar xf $1      ;;
+            *.tbz2)      tar xjf $1     ;;
+            *.tgz)       tar xzf $1     ;;
+            *.zip)       unzip $1       ;;
+            *.Z)         uncompress $1  ;;
+            *.7z)        7z x $1        ;;
+            *)          echo "'$1' 无法解压" ;;
+        esac
+    else
+        echo "'$1' 不是有效的文件"
+    fi
+}
+
+# =============================================================================
+# 类似 zsh-copypath 的功能
+# =============================================================================
+
+# 复制当前路径到剪贴板
+copypath() {
+    local path=$(pwd)
+    if command -v pbcopy >/dev/null 2>&1; then
+        # macOS
+        echo -n "$path" | pbcopy
+    elif command -v xclip >/dev/null 2>&1; then
+        # Linux with xclip
+        echo -n "$path" | xclip -selection clipboard
+    elif command -v xsel >/dev/null 2>&1; then
+        # Linux with xsel
+        echo -n "$path" | xsel --clipboard --input
+    else
+        echo "未找到剪贴板工具"
+        return 1
+    fi
+    echo "路径已复制到剪贴板: $path"
+}
+
+# =============================================================================
+# 类似 zsh-open 的功能
+# =============================================================================
+
+# 打开文件或目录
+o() {
+    if [ -z "$1" ]; then
+        open .
+    else
+        open "$1"
+    fi
+}
+
+# =============================================================================
+# 类似 zsh-sudo 的功能
+# =============================================================================
+
+# 双击 ESC 添加 sudo
+bind '"\e\e": "\C-asudo \C-e"'
+
+# =============================================================================
+# 类似 zsh-colored-man-pages 的功能
+# =============================================================================
+
+# 彩色 man 页面
+man() {
+    env \
+        LESS_TERMCAP_mb=$(printf "\e[1;31m") \
+        LESS_TERMCAP_md=$(printf "\e[1;31m") \
+        LESS_TERMCAP_me=$(printf "\e[0m") \
+        LESS_TERMCAP_se=$(printf "\e[0m") \
+        LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
+        LESS_TERMCAP_ue=$(printf "\e[0m") \
+        LESS_TERMCAP_us=$(printf "\e[1;32m") \
+        man "$@"
+}
+
+# =============================================================================
+# 类似 zsh-command-not-found 的功能
+# =============================================================================
+
+# 命令未找到时的建议
+command_not_found_handle() {
+    local cmd="$1"
+    echo "命令未找到: $cmd"
+    
+    # 检查是否有类似的命令
+    if command -v fzf >/dev/null 2>&1; then
+        echo "搜索类似命令..."
+        compgen -c | grep -i "$cmd" | head -5
+    fi
+    
+    # 检查是否需要安装
+    if command -v apt >/dev/null 2>&1; then
+        echo "尝试: apt search $cmd"
+    elif command -v brew >/dev/null 2>&1; then
+        echo "尝试: brew search $cmd"
+    fi
+    
+    return 127
+}
+
+# =============================================================================
+# 类似 zsh-autosuggestions 的提示功能
+# =============================================================================
+
+# 简单的命令提示
+__bash_prompt() {
+    local last_cmd=$?
+    local cmd_suggestions=""
+    
+    # 基于历史记录的建议
+    if [ -n "$COMP_LINE" ]; then
+        local current_input="${COMP_LINE% *}"
+        local suggestions=$(history | grep "$current_input" | tail -3 | sed 's/^[[:space:]]*[0-9]*[[:space:]]*//')
+        if [ -n "$suggestions" ]; then
+            cmd_suggestions="\033[2;37m建议: $suggestions\033[0m"
+        fi
+    fi
+    
+    # 显示建议
+    if [ -n "$cmd_suggestions" ]; then
+        echo -e "$cmd_suggestions"
+    fi
+}
+
+# =============================================================================
+# 提示符配置
+# =============================================================================
+
+# 彩色提示符
+if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+    # SSH 连接
+    PS1='\[\033[1;31m\]\u@\h\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
+else
+    # 本地连接
+    PS1='\[\033[1;32m\]\u@\h\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
+fi
+
+# Git 分支显示
+if command -v git >/dev/null 2>&1; then
+    parse_git_branch() {
+        git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+    }
+    PS1='\[\033[1;32m\]\u@\h\[\033[0m\]:\[\033[1;34m\]\w\[\033[1;33m\]$(parse_git_branch)\[\033[0m\]\$ '
+fi
+
+# =============================================================================
+# 别名
+# =============================================================================
+
+# 常用别名
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+# Git 别名
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline'
+alias gd='git diff'
+
+# 系统别名
+alias df='df -h'
+alias du='du -h'
+alias free='free -h'
+alias top='htop'
+
+# 安全别名
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# =============================================================================
+# 环境变量
+# =============================================================================
+
+# 编辑器
+export EDITOR=vim
+export VISUAL=vim
+
+# 语言环境
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# 路径
+export PATH="$HOME/.local/bin:$PATH"
+
+# =============================================================================
+# 平台特定配置
+# =============================================================================
+
+# macOS 特定配置
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Homebrew
+    if command -v brew >/dev/null 2>&1; then
+        eval "$(brew shellenv)"
+    fi
+    
+    # 启用颜色
+    export CLICOLOR=1
+    export LSCOLORS=ExFxBxDxCxegedabagacad
+    
+    # 别名
+    alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
+    alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+fi
+
+# Linux 特定配置
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # 启用颜色
+    alias ls='ls --color=auto'
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# =============================================================================
+# 加载额外配置
+# =============================================================================
+
+# 加载本地配置
+if [ -f ~/.bashrc.local ]; then
+    . ~/.bashrc.local
+fi
+
+# 加载工作相关配置
+if [ -f ~/.bashrc.work ]; then
+    . ~/.bashrc.work
+fi
+
+echo "🐚 增强的 Bash 配置已加载"
+echo "📚 可用功能: 自动补全、历史搜索、目录跳转、命令提示等" 
