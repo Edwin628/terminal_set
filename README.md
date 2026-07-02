@@ -96,27 +96,26 @@ vim ~/.p10k.zsh
 
 ```
 terminal_set/
-├── configs/                 # 配置文件
+├── configs/                 # 配置文件（唯一源）
 │   ├── shell/              # Shell 配置
+│   │   ├── .zshrc          # 跨平台 Zsh 配置（完整版）
 │   │   ├── .zshrc_macos    # macOS 专用配置
 │   │   ├── .zshrc_linux    # Linux 专用配置
-│   │   └── .bashrc_enhanced # Bash 增强配置
-│   ├── terminal/           # 终端工具配置
-│   └── editor/             # 编辑器配置
+│   │   ├── .bashrc_enhanced # Bash 增强配置
+│   │   └── .p10k.zsh       # Powerlevel10k 主题
+│   ├── editor/             # 编辑器配置
+│   │   ├── .vimrc          # Vim 配置
+│   │   └── nvim/           # Neovim 模块化配置
+│   │       ├── init.lua    # 入口文件
+│   │       └── lua/        # 配置模块
+│   └── terminal/           # 终端工具配置
+│       └── .tmux.conf      # Tmux 配置
 ├── scripts/                # 脚本文件
 │   ├── install/            # 安装脚本
-│   │   ├── install_macos.sh # macOS 安装脚本
-│   │   ├── install_linux.sh # Linux 安装脚本
-│   │   └── install_bash_plugins.sh # Bash 插件安装
-│   └── customize/          # 定制脚本
-│       ├── quick_colors.sh  # 快速颜色修改
-│       ├── change_colors.sh # 完整颜色配置
-│       └── apply_current_theme.sh # 应用当前主题
+│   ├── customize/          # 定制脚本
+│   ├── check/              # 检查脚本
+│   └── test/               # 测试脚本
 ├── docs/                   # 文档
-│   └── shell/             # Shell 相关文档
-│       └── BASH_PLUGINS_GUIDE.md # Bash 插件指南
-│   ├── test/              # 测试脚本
-│   │   └── test_bash_features.sh # Bash 功能测试
 └── README.md               # 项目说明
 ```
 
