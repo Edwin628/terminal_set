@@ -8,8 +8,8 @@ set showcmd                  " 显示命令
 set showmode                 " 显示当前模式
 set wildmenu                 " 命令行补全美化
 set ruler                    " 显示行列号
-set mouse=a                  " 启用鼠标
-set clipboard=unnamedplus    " 使用系统剪贴板
+set mouse=                   " 启用鼠标
+set clipboard=unnamedplus    " y/p 使用系统剪贴板
 set title                    " 显示窗口标题
 
 " ========== 缩进与对齐 ==========
@@ -39,6 +39,23 @@ set laststatus=2             " 总是显示状态栏
 set statusline=%f%m%r%h\ [%{&ff}]\ %y\ [%l,%v]\ [%p%%]
 
 " ========== 快捷键增强 ==========
+" 删除/修改写入黑洞寄存器，不覆盖系统剪贴板
+nnoremap d "_d
+vnoremap d "_d
+nnoremap D "_D
+vnoremap D "_D
+nnoremap x "_x
+vnoremap x "_x
+nnoremap X "_X
+vnoremap X "_X
+nnoremap c "_c
+vnoremap c "_c
+nnoremap C "_C
+vnoremap C "_C
+
+" Ex 命令删除到黑洞寄存器，避免 :%d 等污染系统剪贴板
+cnoreabbrev %d %d_
+
 nnoremap <Space> :noh<CR>    " Space 清除搜索高亮
 nmap <C-s> :w<CR>            " Ctrl+s 保存
 imap <C-s> <Esc>:w<CR>a
@@ -83,4 +100,3 @@ silent! function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~ '\s'
 endfunction
-
