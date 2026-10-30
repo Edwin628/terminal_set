@@ -9,7 +9,9 @@ set showmode                 " 显示当前模式
 set wildmenu                 " 命令行补全美化
 set ruler                    " 显示行列号
 set mouse=                   " 启用鼠标
-set clipboard=unnamedplus    " y/p 使用系统剪贴板
+if has('clipboard')
+  set clipboard=unnamedplus    " y/p 使用系统剪贴板
+endif
 set title                    " 显示窗口标题
 
 " ========== 缩进与对齐 ==========
@@ -56,8 +58,10 @@ vnoremap C "_C
 " Ex 命令删除到黑洞寄存器，避免 :%d 等污染系统剪贴板
 cnoreabbrev %d %d_
 
-nnoremap <Space> :noh<CR>    " Space 清除搜索高亮
-nmap <C-s> :w<CR>            " Ctrl+s 保存
+" Space 清除搜索高亮
+nnoremap <silent> <Space> :nohlsearch<CR>
+" Ctrl+s 保存
+nnoremap <C-s> :w<CR>
 imap <C-s> <Esc>:w<CR>a
 vnoremap < <gv
 vnoremap > >gv
@@ -68,35 +72,147 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
+" ========== 代码编辑与补全 ==========
+set hidden
+set updatetime=300
+set completeopt=menuone,noinsert,noselect
+set shortmess+=c
+if exists('+signcolumn')
+  set signcolumn=yes
+endif
+
+" 保留用户额外的扩展；重复加载配置时不重复追加。
+let g:coc_global_extensions = get(g:, 'coc_global_extensions', [])
+for s:extension in ['coc-clangd', 'coc-pyright', 'coc-sh', 'coc-json',
+      \ 'coc-git', 'coc-pairs', 'coc-vimlsp']
+  if index(g:coc_global_extensions, s:extension) < 0
+    call add(g:coc_global_extensions, s:extension)
+  endif
+endfor
+unlet s:extension
+
+" 默认配置随 .vimrc 部署；保留预设的 g:coc_user_config 和项目级覆盖。
+" 注意：此变量的优先级高于用户级 :CocConfig，请在这里调整同名设置。
+let g:coc_user_config = extend({
+      \ 'suggest.noselect': v:true,
+      \ 'semanticTokens.enable': v:true,
+      \ 'diagnostic.refreshOnInsertMode': v:false,
+      \ 'clangd.arguments': ['--background-index', '--completion-style=detailed',
+      \                      '--header-insertion=never'],
+      \ }, get(g:, 'coc_user_config', {}), 'force')
+
 " ========== 插件管理 ==========
-" 静默加载插件，不显示错误信息
-silent! call plug#begin('~/.vim/plugged')
+" 缺少 vim-plug 时保留基本编辑能力；已安装插件的真实错误不再被吞掉。
+if exists('*plug#begin') || !empty(globpath(&runtimepath, 'autoload/plug.vim'))
+  call plug#begin('~/.vim/plugged')
 
-silent! Plug 'tpope/vim-surround'             " 快速包裹符号
-silent! Plug 'preservim/nerdtree'            " 文件树
-silent! Plug 'jiangmiao/auto-pairs'          " 自动括号
-silent! Plug 'itchyny/lightline.vim'         " 状态栏
-silent! Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }  " 模糊搜索
-silent! Plug 'junegunn/fzf.vim'
-silent! Plug 'sheerun/vim-polyglot'          " 多语言语法支持
-silent! Plug 'neoclide/coc.nvim', {'branch': 'release'}      " LSP 补全引擎
+  Plug 'tpope/vim-surround'                  " 快速包裹符号
+  Plug 'preservim/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] }
+  Plug 'itchyny/lightline.vim'               " 状态栏
+  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+  Plug 'junegunn/fzf.vim', { 'on': ['Files', 'GFiles', 'Buffers', 'Rg'] }
+  Plug 'octol/vim-cpp-enhanced-highlight', { 'for': ['c', 'cpp'] }
+  if has('nvim') ? has('nvim-0.8.0') : has('patch-9.0.0438')
+    Plug 'neoclide/coc.nvim', { 'branch': 'release' }
+  else
+    echom '[terminal_set] CoC 需要 Vim >= 9.0.0438 或 Neovim >= 0.8.0，已跳过。'
+  endif
 
-silent! call plug#end()
+  call plug#end()
+else
+  echom '[terminal_set] 未找到 vim-plug，使用基础编辑模式；安装后执行 :PlugInstall。'
+endif
+filetype plugin indent on
 
 " ========== 插件配置 ==========
-" NerdTree 快捷键（静默加载）
-silent! nmap <C-n> :NERDTreeToggle<CR>
+let g:lightline = { 'colorscheme': 'wombat' }
+let g:cpp_class_scope_highlight = 1
+let g:cpp_member_variable_highlight = 1
+" 模板的正则高亮开销较大，类型信息优先由 clangd 语义高亮提供。
+let g:cpp_experimental_template_highlight = 0
 
-" Lightline 主题（静默加载）
-silent! let g:lightline = { 'colorscheme': 'wombat' }
-
-" CoC 设置（自动补全，静默加载）
-silent! inoremap <silent><expr> <TAB>
-  \ pumvisible() ? "\<C-n>" :
-  \ <SID>check_back_space() ? "\<TAB>" :
-  \ coc#refresh()
-
-silent! function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~ '\s'
+function! s:PluginCommand(command) abort
+  if exists(':' . a:command) == 2
+    execute a:command
+  else
+    echom '[terminal_set] 命令不可用：' . a:command . '，请先执行 :PlugInstall。'
+  endif
 endfunction
+
+nnoremap <silent> <C-n> :call <SID>PluginCommand('NERDTreeToggle')<CR>
+nnoremap <silent> <C-p> :call <SID>PluginCommand('Files')<CR>
+nnoremap <silent> <C-g> :call <SID>PluginCommand('GFiles')<CR>
+nnoremap <silent> <leader>fb :call <SID>PluginCommand('Buffers')<CR>
+nnoremap <silent> <leader>fg :call <SID>PluginCommand('Rg')<CR>
+
+function! s:CocReady() abort
+  return exists('*coc#rpc#ready') && coc#rpc#ready()
+endfunction
+
+function! s:check_back_space() abort
+  let column = col('.') - 1
+  return !column || getline('.')[column - 1] =~ '\s'
+endfunction
+
+function! s:CocTab() abort
+  if s:CocReady() && coc#pum#visible()
+    return coc#pum#next(1)
+  endif
+  if pumvisible()
+    return "\<C-n>"
+  endif
+  return s:check_back_space() || !s:CocReady() ? "\<Tab>" : coc#refresh()
+endfunction
+
+function! s:CocShiftTab() abort
+  if s:CocReady() && coc#pum#visible()
+    return coc#pum#prev(1)
+  endif
+  return pumvisible() ? "\<C-p>" : "\<C-d>"
+endfunction
+
+function! s:CocEnter() abort
+  if s:CocReady() && coc#pum#visible()
+    return coc#pum#confirm()
+  endif
+  return s:CocReady() ? "\<C-g>u\<CR>\<C-r>=coc#on_enter()\<CR>" : "\<C-g>u\<CR>"
+endfunction
+
+inoremap <silent><expr> <Tab> <SID>CocTab()
+inoremap <silent><expr> <S-Tab> <SID>CocShiftTab()
+inoremap <silent><expr> <CR> <SID>CocEnter()
+inoremap <silent><expr> <C-Space> <SID>CocReady() ? coc#refresh() : "\<C-n>"
+
+function! s:ShowDocumentation() abort
+  if &filetype ==# 'vim' || &filetype ==# 'help'
+    execute 'help ' . expand('<cword>')
+  elseif s:CocReady() && CocAction('hasProvider', 'hover')
+    call CocActionAsync('doHover')
+  else
+    normal! K
+  endif
+endfunction
+
+" CoC 初始化成功后再接管原生跳转键，基础模式仍保留 Vim 的 gd、K。
+function! s:CocMappings() abort
+  nmap <silent> gd <Plug>(coc-definition)
+  nmap <silent> gy <Plug>(coc-type-definition)
+  nmap <silent> gi <Plug>(coc-implementation)
+  nmap <silent> gr <Plug>(coc-references)
+  nmap <silent> [g <Plug>(coc-diagnostic-prev)
+  nmap <silent> ]g <Plug>(coc-diagnostic-next)
+  nmap <silent> <leader>rn <Plug>(coc-rename)
+  nmap <silent> <leader>ca <Plug>(coc-codeaction-cursor)
+  nmap <silent> <leader>f <Plug>(coc-format)
+  xmap <silent> <leader>f <Plug>(coc-format-selected)
+  nnoremap <silent> K :call <SID>ShowDocumentation()<CR>
+endfunction
+
+augroup terminal_set_coc
+  autocmd!
+  autocmd FileType c,cpp let b:coc_pairs_disabled = ['<']
+  autocmd User CocNvimInit call <SID>CocMappings()
+augroup END
+if s:CocReady()
+  call s:CocMappings()
+endif

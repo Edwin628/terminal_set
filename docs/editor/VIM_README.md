@@ -14,10 +14,18 @@
 - 语法高亮和自动补全
 - 文件树和模糊搜索
 - 状态栏美化
-- 多语言支持
-- LSP 集成
+- C/C++ 优先，兼顾 Python、Shell、JSON 和 Vimscript
+- CoC + clangd 语义高亮、诊断、跳转与重构
+
+本文对应 `configs/editor/.vimrc`。`configs/editor/nvim/` 是独立的 Lua/lazy.nvim + 原生 LSP 配置，不要同时加载两套补全框架。
 
 ## 🔧 安装与配置
+
+### 依赖与兼容性
+- 当前 CoC release 要求 **Vim ≥ 9.0.0438 或 Neovim ≥ 0.8.0**，以及 **Node.js ≥ 22.15.0**；版本要求以 [CoC 安装说明](https://cocnvim.com/docs/install-coc.nvim) 为准。
+- Vim 8.2 仍可运行基础配置和其他插件，但配置会跳过 CoC 并提示升级。Ubuntu 22.04 的系统 Vim/Node.js 不一定满足当前 CoC 要求。
+- 需要 Git；C/C++ 需要 `clangd`（可通过系统包管理器或 `:CocCommand clangd.install` 安装）。文本搜索 `:Rg` 需要 `ripgrep`；fzf 可由插件安装钩子安装。
+- 缺少 vim-plug 时不自动联网或隐藏错误，保留基础编辑能力；缺少 CoC 时 Tab/Enter 正常回退。没有剪贴板支持的 Vim 不强制使用系统剪贴板。
 
 ### 安装 vim-plug
 ```bash
@@ -53,11 +61,15 @@ vim +PlugInstall +qall
 |------|------|------|
 | **vim-surround** | 快速包裹符号 | ✅ 已配置 |
 | **nerdtree** | 文件树 | ✅ 已配置 |
-| **auto-pairs** | 自动括号 | ✅ 已配置 |
+| **coc-pairs**（CoC 扩展） | 唯一的自动配对引擎 | ✅ 已配置 |
 | **lightline.vim** | 状态栏 | ✅ 已配置 |
-| **fzf** | 模糊搜索 | ✅ 已配置 |
-| **vim-polyglot** | 多语言语法 | ✅ 已配置 |
-| **coc.nvim** | LSP 补全 | ✅ 已配置 |
+| **fzf + fzf.vim** | 文件、Buffer、Git 文件和文本搜索 | ✅ 命令按需加载 |
+| **vim-cpp-enhanced-highlight** | C/C++ 语法增强 | ✅ 按文件类型加载 |
+| **coc.nvim**（release） | LSP 补全与语义高亮 | ✅ 需满足版本要求 |
+
+NERDTree 按命令加载。Python、Shell 等使用 Vim 自带语法；不再加载覆盖上百种语言的 vim-polyglot。clangd 的语义高亮由 CoC 原生处理，无需旧的 vim-lsp-cxx-highlight；只保留一套搜索、文件树和配对方案，不引入 LeaderF、defx 或 Python RPC 桥接库。
+
+默认 CoC 扩展：`coc-clangd`、`coc-pyright`、`coc-sh`、`coc-json`、`coc-git`、`coc-pairs`、`coc-vimlsp`。不默认启用 TabNine；已有自定义扩展会保留，重复加载配置不会重复追加。迁移时可用 `:CocUninstall coc-python` 移除旧 Python 扩展；同时删除自定义列表中对应的旧条目。
 
 ### 插件详细说明
 
@@ -77,16 +89,16 @@ cs"'     " 将双引号改为单引号
 Ctrl + n    " 切换文件树
 ```
 
-#### 3. auto-pairs
-**功能**：自动插入配对符号
-- 输入 `(` 自动插入 `)`
-- 输入 `{` 自动插入 `}`
-- 输入 `[` 自动插入 `]`
+#### 3. coc-pairs
+**功能**：由 CoC 统一处理自动配对，避免多个插件同时修改输入
+- 输入 `(`、`{`、`[` 自动插入对应闭合符号
+- C/C++ 缓冲区禁用 `<` 配对，比较运算和 `<<` 不再插入多余的 `>`
+- 其他语言不设置该禁用项；CoC 不可用时仅保留普通输入
 
 #### 4. lightline.vim
 **功能**：美化状态栏
 - 显示文件类型
-- 显示 Git 状态
+- 显示当前模式和文件状态
 - 显示编码信息
 
 #### 5. fzf
@@ -97,20 +109,37 @@ Ctrl + p    " 文件搜索
 Ctrl + g    " Git 文件搜索
 ```
 
-#### 6. vim-polyglot
-**功能**：多语言语法支持
-- 支持 100+ 种编程语言
-- 自动语法高亮
-- 缩进规则
+#### 6. vim-cpp-enhanced-highlight
+**功能**：C/C++ 语法增强
+- 按 `c`、`cpp` 文件类型加载
+- 启用类作用域和成员变量高亮
+- 禁用实验性模板正则高亮，语义类型交给 clangd + CoC
 
 #### 7. coc.nvim
 **功能**：LSP 补全引擎
 ```vim
 " 快捷键
-Tab         " 补全选择
-Ctrl + n    " 下一个补全项
-Ctrl + p    " 上一个补全项
+Tab         " 下一个候选；空白处缩进，无 CoC 时正常插入 Tab
+Shift+Tab   " 上一个候选；无候选时减少缩进
+Enter       " 确认候选；无候选时换行
+Ctrl+Space  " 手动触发补全；无 CoC 时使用原生补全
 ```
+
+### C/C++ 项目配置
+clangd 默认启用后台索引和详细补全，禁用补全时自动插入头文件。不默认开启 clang-tidy，避免增加大型项目分析负担；可按项目启用。
+
+为真实项目生成编译数据库，避免系统头文件、宏和编译选项识别错误：
+```bash
+cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+```
+在项目根目录的 `.clangd` 中指定数据库目录（已有文件则合并配置）：
+```yaml
+CompileFlags:
+  CompilationDatabase: build
+```
+不要全局强制 C++ 标准或系统 include 路径，让编译数据库决定项目参数。
+
+内置参数集中在 `.vimrc` 的 `g:coc_user_config` 中；预先设置的同名值会保留。该变量优先于用户级 `:CocConfig`，需要修改同名默认项时请编辑 `.vimrc`，或在加载前设置该变量。资源级参数也可在 `:CocLocalConfig`（项目 `.vim/coc-settings.json`）中覆盖。扩展安装和 clangd 运行状态可通过 `:CocList extensions`、`:CocInfo`、`:CocCommand workspace.showOutput` 检查。
 
 ## ⌨️ 快捷键说明
 
@@ -140,6 +169,19 @@ Ctrl + n    " 切换文件树
 " fzf
 Ctrl + p    " 文件搜索
 Ctrl + g    " Git 文件搜索
+<leader>fb  " Buffer 搜索
+<leader>fg  " 项目文本搜索（需要 ripgrep）
+
+" CoC 初始化成功后生效
+gd          " 定义
+gy          " 类型定义
+gi          " 实现
+gr          " 引用
+K           " 悬浮文档；Vimscript 中仍查询 help
+[g / ]g     " 上一个/下一个诊断
+<leader>rn  " 重命名
+<leader>ca  " 当前位置的代码操作
+<leader>f   " 格式化文件；可视模式下格式化选区
 
 " 清除搜索高亮
 Space       " 清除搜索高亮
@@ -147,6 +189,8 @@ Space       " 清除搜索高亮
 " 保存
 Ctrl + s    " 保存文件
 ```
+
+`<leader>` 沿用 Vim 默认的反斜杠 `\`，例如 `\rn` 重命名；可在加载配置前设置 `mapleader`。空格仍用于清除搜索高亮。
 
 ### 分屏操作
 ```vim
@@ -168,7 +212,7 @@ Ctrl + l    " 右分屏
 - **行号显示**：相对行号
 - **光标高亮**：当前行高亮
 - **搜索高亮**：实时搜索
-- **鼠标支持**：启用鼠标操作
+- **鼠标支持**：默认关闭鼠标，保留终端原生选择
 
 ### 缩进设置
 - **Tab 宽度**：4 个空格
@@ -227,13 +271,13 @@ vim +PlugInstall +qall
 ```
 
 #### 3. 自动补全不工作
-```bash
-# 检查 coc.nvim 是否正确安装
-ls ~/.vim/plugged/coc.nvim
-
-# 重新安装
-vim +PlugInstall +qall
+先检查 `vim --version`、`node --version` 和 `clangd --version` 是否满足依赖，再在 Vim 内执行：
+```vim
+:CocInfo
+:CocList extensions
+:CocCommand workspace.showOutput
 ```
+缺少插件时运行 `:PlugInstall`；缺少扩展时可运行 `:CocInstall coc-clangd coc-pyright coc-sh coc-json coc-git coc-pairs coc-vimlsp`。版本不满足时应先升级，而不是反复重装。不要同时配置另一套 clangd `languageserver` 或自动配对插件。
 
 #### 4. 文件树不显示
 ```vim
@@ -281,6 +325,15 @@ vim +PlugInstall +qall
 " 在 Vim 中执行
 :PlugStatus
 ```
+
+## 🧪 自动验证
+在仓库中执行：
+```bash
+python3 scripts/test/test_vim.py
+```
+测试不联网、不安装插件、不修改用户 HOME；会隔离运行已安装的 Vim/Neovim，验证基础启动、缺插件回退、插件声明和按需加载、C/C++ 配对作用域、补全按键、重复加载以及自定义配置保留。失败时退出码非零。
+
+CoC 和 vim-plug 分支使用测试桩，不能据此认定真实插件已安装或 LSP 已联通；此脚本也不测试独立的 Neovim Lua 配置。完整集成验证还需在满足版本要求且安装插件后，打开有编译数据库的 C/C++ 项目，检查补全、`gd`、`gr`、诊断及 `<`/`<<` 输入。
 
 ## 🎯 使用建议
 
